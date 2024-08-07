@@ -4,11 +4,17 @@ extends Control
 var current_player_index: int = 0
 var turn_number: int = 1
 var players = []
+var turn_timer: Timer
+var turn_duration: float = 60.0  # 30 seconds per turn
+
+# Signals
+signal turn_timer_updated(time_left: float)
 
 # UI Elements
 @onready var end_turn_button = $VBoxContainer/EndTurn
 @onready var current_player_label = $VBoxContainer/CurrentPlayer
 @onready var sync_timer = $SyncTimer
+@onready var timer_label = $TimerLabel
 @onready var player_labels = [
 	$VBoxContainer/HBoxContainer/Player1Label,
 	$VBoxContainer/HBoxContainer/Player2Label,
@@ -23,7 +29,12 @@ func _ready():
 	connect_signals()
 	initialize_game_state()
 	sync_timer.start()
+	setup_turn_timer()
 	_update_player_labels()
+
+func _process(delta):
+	if turn_timer.time_left > 0:
+		emit_signal("turn_timer_updated", turn_timer.time_left)
 
 # Set up initial game state
 func setup_game():
@@ -37,6 +48,7 @@ func connect_signals():
 	Global.players_updated.connect(self._update_player_labels)
 	Global.username_updated.connect(self._on_username_updated)
 	sync_timer.connect("timeout", Callable(self, "_on_sync_timer_timeout"))
+	timer_label.connect("turn_timer_updated", Callable(self, "_on_turn_timer_updated"))
 
 # Initialize game state based on host/client status
 func initialize_game_state():
@@ -55,6 +67,47 @@ func _init_game_state():
 func _request_game_state():
 	Global.send_match_state(3, {"type": "request_game_state"})
 
+func setup_turn_timer():
+	turn_timer = Timer.new()
+	turn_timer.one_shot = true
+	turn_timer.connect("timeout", Callable(self, "_on_turn_timer_timeout"))
+	add_child(turn_timer)
+
+func start_turn_timer():
+	turn_timer.start(turn_duration)
+
+func stop_turn_timer():
+	turn_timer.stop()
+
+func _on_turn_timer_timeout():
+	print("Turn timer expired!")
+	switch_turns()
+
+func switch_turns():
+	stop_turn_timer()
+	current_turn = (current_turn + 1) % player_count
+	emit_signal("turn_switched", current_turn)
+	start_turn_timer()
+
+func _on_cell_pressed(cell):
+	if game_over:
+		return
+	
+	if board[cell] == -1:
+		board[cell] = current_turn
+		emit_signal("cell_updated", cell, current_turn)
+		
+		if check_winner():
+			stop_turn_timer()
+			game_over = true
+			emit_signal("game_over", current_turn)
+		elif check_draw():
+			stop_turn_timer()
+			game_over = true
+			emit_signal("game_over", -1)
+		else:
+			switch_turns()
+
 # Handle end turn button press
 func _on_end_turn_pressed():
 	if is_current_player():
@@ -72,8 +125,6 @@ func next_turn():
 
 # Update the turn display
 func update_turn_display():
-	
-	
 	if current_player_index < 0 or current_player_index >= players.size():
 		print("Error: Invalid current_player_index: ", current_player_index)
 		return

@@ -18,6 +18,14 @@ var player_usernames = {}
 var match_id = ""
 var players = {}
 
+# Authentication variables
+var username = ""
+var is_guest = false
+
+# Config file for storing guest credentials
+var config = ConfigFile.new()
+const CONFIG_FILE_PATH = "user://guest_credentials.cfg"
+
 # Signals
 signal players_updated
 signal game_started
@@ -25,27 +33,91 @@ signal username_updated(id, username)
 
 func _ready():
 	client = Nakama.create_client(KEY, SERVER_IP, PORT, SCHEME)
-	connect_to_server()
+	load_guest_credentials()
 
-# Connect to Nakama server
-func connect_to_server():
-	var result = await client.authenticate_custom_async("user_id" + str(randi()))
+# Load or create guest credentials
+func load_guest_credentials():
+	var error = config.load(CONFIG_FILE_PATH)
+	if error != OK:
+		# If the file doesn't exist or can't be loaded, create new guest credentials
+		create_guest_credentials()
+		
+# Create new guest credentials
+func create_guest_credentials():
+	var random_id = str(randi())
+	config.set_value("guest", "id", random_id)
+	config.save(CONFIG_FILE_PATH)
+
+# Login with username and password
+func login(username: String, password: String) -> bool:
+	var custom_id = username + ":" + password
+	var result = await client.authenticate_custom_async(custom_id)
 	if result.is_exception():
-		print("An error occurred: " + str(result.get_exception().message))
-		return
+		print("Login error: ", result.get_exception().message)
+		return false
+	
 	session = result
 	player_id = session.user_id
-	print("Connected as player: ", player_id)
+	self.username = username
+	is_guest = false
+	print("Logged in as: ", username)
+	await connect_socket()
+	return true
+
+func logout():
+	if session:
+		await client.session_logout_async(session)
+	session = null
+	player_id = ""
+	username = ""
+	is_guest = false
+	print("Logged out successfully")
+
+# Signup with username and password
+func signup(username: String, password: String) -> bool:
+	var custom_id = username + ":" + password
+	var result = await client.authenticate_custom_async(custom_id, username, true)
+	if result.is_exception():
+		print("Signup error: ", result.get_exception().message)
+		return false
 	
+	print("Signup successful for: ", username)
+	return true
+
+# Connect to Nakama server
+# Connect to server (can be used for guest or quick play)
+func connect_to_server():
+	var guest_id = config.get_value("guest", "id", "")
+	if guest_id.is_empty():
+		create_guest_credentials()
+		guest_id = config.get_value("guest", "id")
+
+	var result = await client.authenticate_custom_async("guest" + guest_id)
+	if result.is_exception():
+		print("Unable to connect to server: ", result.get_exception().message)
+		return false
+
+	session = result
+	player_id = session.user_id
+	username = "Guest" + guest_id
+	is_guest = true
+	print("Connected as guest: ", username)
+	await connect_socket()
+	return true
+
+
+# Connect to Nakama socket
+func connect_socket() -> bool:
 	socket = Nakama.create_socket_from(client)
 	var connected = await socket.connect_async(session)
 	if connected.is_exception():
-		print("An error occurred: " + str(connected.get_exception().message))
-		return
-	print("Socket connected.")
+		print("Socket connection error: ", connected.get_exception().message)
+		return false
 	
+	print("Socket connected.")
 	socket.received_match_state.connect(self._on_match_state)
-
+	return true
+	
 # Create a new match
 func create_match():
 	var result = await socket.create_match_async()
@@ -64,7 +136,6 @@ func join_match(match_id):
 	if match_id.is_empty():
 		print("Error: Match ID is empty")
 		return
-	
 	var result = await socket.join_match_async(match_id)
 	if result.is_exception():
 		var error_message = str(result.get_exception().message)
