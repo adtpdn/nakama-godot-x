@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://djjh7h4tua45p"]
+
+[ext_resource type="Script" path="res://scenes/character_portrait.gd" id="1_tuh5y"]
+
+[node name="CharacterPortrait" type="TextureRect"]
+script = ExtResource("1_tuh5y")
+
+[node name="Name" type="Label" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0

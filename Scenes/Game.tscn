@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://u5pmkluhbvmx"]
+[gd_scene load_steps=3 format=3 uid="uid://u5pmkluhbvmx"]
 
-[ext_resource type="Script" path="res://Scenes/Game.gd" id="1_416pw"]
+[ext_resource type="Script" path="res://scenes/game.gd" id="1_3bbny"]
+[ext_resource type="Texture2D" uid="uid://oy5f23vdvum7" path="res://assets/player_bob.png" id="2_dgls3"]
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -11,7 +12,7 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-script = ExtResource("1_416pw")
+script = ExtResource("1_3bbny")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 custom_minimum_size = Vector2(360, 0)
@@ -54,6 +55,35 @@ text = "Player 3"
 [node name="Player4Label" type="Label" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Player 4"
+
+[node name="CharacterContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 45
+alignment = 1
+
+[node name="Player1" type="TextureRect" parent="VBoxContainer/CharacterContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+texture = ExtResource("2_dgls3")
+expand_mode = 3
+
+[node name="Player2" type="TextureRect" parent="VBoxContainer/CharacterContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+texture = ExtResource("2_dgls3")
+expand_mode = 3
+
+[node name="Player3" type="TextureRect" parent="VBoxContainer/CharacterContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+texture = ExtResource("2_dgls3")
+expand_mode = 3
+
+[node name="Player4" type="TextureRect" parent="VBoxContainer/CharacterContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+texture = ExtResource("2_dgls3")
+expand_mode = 3
 
 [node name="EndTurn" type="Button" parent="VBoxContainer"]
 layout_mode = 2

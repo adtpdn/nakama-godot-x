@@ -1,6 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://dg60px6f87gmp"]
+[gd_scene load_steps=7 format=3 uid="uid://dg60px6f87gmp"]
 
-[ext_resource type="Script" path="res://Scenes/Lobby.gd" id="1_2uifv"]
+[ext_resource type="Script" path="res://scenes/lobby.gd" id="1_dbuk7"]
+[ext_resource type="Texture2D" uid="uid://oy5f23vdvum7" path="res://assets/player_bob.png" id="2_k0svm"]
+[ext_resource type="Texture2D" uid="uid://dga3de3vnifih" path="res://assets/player_dabro.png" id="3_yi46j"]
+[ext_resource type="Texture2D" uid="uid://wwdwxalnbvv1" path="res://assets/player_gatot.png" id="4_rhddo"]
+[ext_resource type="Texture2D" uid="uid://c2qndo785ypmv" path="res://assets/player_mamo.png" id="5_fy1dk"]
+[ext_resource type="Texture2D" uid="uid://cveqd76bqnjq0" path="res://assets/player_mr_copper.png" id="6_6alro"]
 
 [node name="Lobby" type="Control"]
 layout_mode = 3
@@ -11,22 +16,23 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_2uifv")
+script = ExtResource("1_dbuk7")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 custom_minimum_size = Vector2(360, 0)
 layout_mode = 1
-anchors_preset = 14
+anchors_preset = 8
+anchor_left = 0.5
 anchor_top = 0.5
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -180.0
-offset_top = -152.0
-offset_right = 180.0
-offset_bottom = 152.0
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 200.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 25
 
 [node name="Label" type="Label" parent="VBoxContainer"]
 layout_mode = 2
@@ -47,6 +53,14 @@ layout_mode = 2
 layout_mode = 2
 text = "Player 1"
 
+[node name="Name" type="Label" parent="VBoxContainer/HBoxContainer/Player1"]
+layout_mode = 2
+text = "Player 1"
+
+[node name="Character" type="Label" parent="VBoxContainer/HBoxContainer/Player1"]
+layout_mode = 2
+text = "Player 1"
+
 [node name="ColorRect" type="ColorRect" parent="VBoxContainer/HBoxContainer/Player1"]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
@@ -56,7 +70,15 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/Player2"]
 layout_mode = 2
+text = "Player 1"
+
+[node name="Name" type="Label" parent="VBoxContainer/HBoxContainer/Player2"]
+layout_mode = 2
 text = "Player 2"
+
+[node name="Character" type="Label" parent="VBoxContainer/HBoxContainer/Player2"]
+layout_mode = 2
+text = "Player 1"
 
 [node name="ColorRect" type="ColorRect" parent="VBoxContainer/HBoxContainer/Player2"]
 custom_minimum_size = Vector2(0, 10)
@@ -67,7 +89,15 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/Player3"]
 layout_mode = 2
+text = "Player 1"
+
+[node name="Name" type="Label" parent="VBoxContainer/HBoxContainer/Player3"]
+layout_mode = 2
 text = "Player 3"
+
+[node name="Character" type="Label" parent="VBoxContainer/HBoxContainer/Player3"]
+layout_mode = 2
+text = "Player 1"
 
 [node name="ColorRect" type="ColorRect" parent="VBoxContainer/HBoxContainer/Player3"]
 custom_minimum_size = Vector2(0, 10)
@@ -78,7 +108,15 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/Player4"]
 layout_mode = 2
+text = "Player 1"
+
+[node name="Name" type="Label" parent="VBoxContainer/HBoxContainer/Player4"]
+layout_mode = 2
 text = "Player 3"
+
+[node name="Character" type="Label" parent="VBoxContainer/HBoxContainer/Player4"]
+layout_mode = 2
+text = "Player 1"
 
 [node name="ColorRect" type="ColorRect" parent="VBoxContainer/HBoxContainer/Player4"]
 custom_minimum_size = Vector2(0, 10)
@@ -97,3 +135,63 @@ text = "Reconnect"
 layout_mode = 2
 text = "Waiting for host to start..."
 horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="CharacterSelector" type="VBoxContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(7.37, 0)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/CharacterSelector"]
+layout_mode = 2
+alignment = 1
+
+[node name="Character1" type="TextureRect" parent="VBoxContainer/CharacterSelector/HBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+texture = ExtResource("2_k0svm")
+expand_mode = 3
+
+[node name="Character2" type="TextureRect" parent="VBoxContainer/CharacterSelector/HBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+texture = ExtResource("3_yi46j")
+expand_mode = 3
+
+[node name="Character3" type="TextureRect" parent="VBoxContainer/CharacterSelector/HBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+texture = ExtResource("4_rhddo")
+expand_mode = 3
+
+[node name="Character4" type="TextureRect" parent="VBoxContainer/CharacterSelector/HBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+texture = ExtResource("5_fy1dk")
+expand_mode = 3
+
+[node name="Character5" type="TextureRect" parent="VBoxContainer/CharacterSelector/HBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+texture = ExtResource("6_6alro")
+expand_mode = 3
+
+[node name="CharacterName" type="Label" parent="VBoxContainer/CharacterSelector"]
+layout_mode = 2
+text = "hello"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/CharacterSelector"]
+layout_mode = 2
+alignment = 1
+
+[node name="PrevCharacter" type="Button" parent="VBoxContainer/CharacterSelector/HBoxContainer2"]
+layout_mode = 2
+text = "◀ Prev"
+
+[node name="NextCharacter" type="Button" parent="VBoxContainer/CharacterSelector/HBoxContainer2"]
+layout_mode = 2
+text = "Next ▶"

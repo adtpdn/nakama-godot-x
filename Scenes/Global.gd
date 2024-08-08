@@ -22,6 +22,11 @@ var players = {}
 var username = ""
 var is_guest = false
 
+# Player
+var characters = ["Bob", "Dabro", "Gatot", "Mamo", "Copper"]
+var selected_character = ""
+var player_characters = {}
+
 # Config file for storing guest credentials
 var config = ConfigFile.new()
 const CONFIG_FILE_PATH = "user://guest_credentials.cfg"
@@ -201,6 +206,9 @@ func _on_match_state(state):
 		"sync_players":
 			players = data.players
 			players_updated.emit()
+		"character_update":
+			player_characters[data.player_id] = data.character
+			emit_signal("players_updated")
 
 # Start the game (host only)
 func start_game():
@@ -212,3 +220,10 @@ func start_game():
 func sync_players():
 	if is_host:
 		send_match_state(1, {"type": "sync_players", "players": players})
+
+# Update Selected Character
+func update_selected_character(character: String):
+	selected_character = character
+	player_characters[player_id] = character
+	if match_id:
+		send_match_state(4, {"type": "character_update", "player_id": player_id, "character": character})

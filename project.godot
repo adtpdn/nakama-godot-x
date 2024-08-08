@@ -11,14 +11,14 @@ config_version=5
 [application]
 
 config/name="Nakama_Godot_Zero"
-run/main_scene="res://Scenes/MainMenu.tscn"
+run/main_scene="res://scenes/auth_scene.tscn"
 config/features=PackedStringArray("4.2", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
 Nakama="*res://addons/com.heroiclabs.nakama/Nakama.gd"
-Global="*res://Scenes/Global.gd"
+Global="*res://scenes/global.gd"
 
 [rendering]
 

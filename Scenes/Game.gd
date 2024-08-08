@@ -4,8 +4,6 @@ extends Control
 var current_player_index: int = 0
 var turn_number: int = 1
 var players = []
-var turn_timer: Timer
-var turn_duration: float = 60.0  # 30 seconds per turn
 
 # Signals
 signal turn_timer_updated(time_left: float)
@@ -14,7 +12,7 @@ signal turn_timer_updated(time_left: float)
 @onready var end_turn_button = $VBoxContainer/EndTurn
 @onready var current_player_label = $VBoxContainer/CurrentPlayer
 @onready var sync_timer = $SyncTimer
-@onready var timer_label = $TimerLabel
+
 @onready var player_labels = [
 	$VBoxContainer/HBoxContainer/Player1Label,
 	$VBoxContainer/HBoxContainer/Player2Label,
@@ -22,19 +20,26 @@ signal turn_timer_updated(time_left: float)
 	$VBoxContainer/HBoxContainer/Player4Label
 ]
 
+@onready var player_characters = [
+	$VBoxContainer/CharacterContainer/Player1,
+	$VBoxContainer/CharacterContainer/Player2,
+	$VBoxContainer/CharacterContainer/Player3,
+	$VBoxContainer/CharacterContainer/Player4
+]
+
 const SYNC_INTERVAL = 5.0  # Sync every 5 seconds
 
 func _ready():
 	setup_game()
 	connect_signals()
-	initialize_game_state()
+	if not Global.is_host:
+		# Request initial game state from host
+		Global.send_match_state(3, {"type": "request_initial_state"})
+	else:
+		initialize_game_state()
 	sync_timer.start()
-	setup_turn_timer()
 	_update_player_labels()
-
-func _process(delta):
-	if turn_timer.time_left > 0:
-		emit_signal("turn_timer_updated", turn_timer.time_left)
+	_update_player_display()
 
 # Set up initial game state
 func setup_game():
@@ -48,7 +53,7 @@ func connect_signals():
 	Global.players_updated.connect(self._update_player_labels)
 	Global.username_updated.connect(self._on_username_updated)
 	sync_timer.connect("timeout", Callable(self, "_on_sync_timer_timeout"))
-	timer_label.connect("turn_timer_updated", Callable(self, "_on_turn_timer_updated"))
+	Global.players_updated.connect(self._update_player_display)
 
 # Initialize game state based on host/client status
 func initialize_game_state():
@@ -66,47 +71,6 @@ func _init_game_state():
 # Request game state (client only)
 func _request_game_state():
 	Global.send_match_state(3, {"type": "request_game_state"})
-
-func setup_turn_timer():
-	turn_timer = Timer.new()
-	turn_timer.one_shot = true
-	turn_timer.connect("timeout", Callable(self, "_on_turn_timer_timeout"))
-	add_child(turn_timer)
-
-func start_turn_timer():
-	turn_timer.start(turn_duration)
-
-func stop_turn_timer():
-	turn_timer.stop()
-
-func _on_turn_timer_timeout():
-	print("Turn timer expired!")
-	switch_turns()
-
-func switch_turns():
-	stop_turn_timer()
-	current_turn = (current_turn + 1) % player_count
-	emit_signal("turn_switched", current_turn)
-	start_turn_timer()
-
-func _on_cell_pressed(cell):
-	if game_over:
-		return
-	
-	if board[cell] == -1:
-		board[cell] = current_turn
-		emit_signal("cell_updated", cell, current_turn)
-		
-		if check_winner():
-			stop_turn_timer()
-			game_over = true
-			emit_signal("game_over", current_turn)
-		elif check_draw():
-			stop_turn_timer()
-			game_over = true
-			emit_signal("game_over", -1)
-		else:
-			switch_turns()
 
 # Handle end turn button press
 func _on_end_turn_pressed():
@@ -141,6 +105,48 @@ func update_turn_display():
 	
 	print("Turn number: ", turn_number, " Current player index: ", current_player_index, " Current player ID: ", current_player_id, " Is current player: ", is_current_player())
 	$TurnNumberLabel.text = str(turn_number)
+
+# Update player display
+func _update_player_display():
+	print("Updating player display")
+	var sorted_players = players.duplicate()
+	sorted_players.sort()
+	
+	# Move host to the beginning of the array
+	if Global.is_host:
+		sorted_players.erase(Global.player_id)
+		sorted_players.push_front(Global.player_id)
+	
+	for i in range(player_characters.size()):
+		if i < sorted_players.size():
+			var player_id = sorted_players[i]
+			var player_name = Global.player_usernames.get(player_id, "Player " + str(i + 1))
+			var character = Global.player_characters.get(player_id, "Bob")  # Default to "Bob" if not set
+			
+			player_labels[i].text = player_name
+			_set_character_texture(player_characters[i], character)
+			player_characters[i].show()
+			player_labels[i].show()
+			
+			# Highlight the current player
+			if player_id == sorted_players[current_player_index]:
+				player_characters[i].modulate = Color(1, 1, 0.5)  # Light yellow
+				player_labels[i].modulate = Color(1, 1, 0.5)  # Light yellow
+			else:
+				player_characters[i].modulate = Color(1, 1, 1)  # White
+				player_labels[i].modulate = Color(1, 1, 1)  # White
+		else:
+			player_characters[i].hide()
+			player_labels[i].hide()
+
+func _set_character_texture(texture_rect: TextureRect, character: String):
+	var texture_path = "res://assets/characters/" + character.to_lower() + ".png"
+	var texture = load(texture_path)
+	if texture:
+		texture_rect.texture = texture
+	else:
+		print("Failed to load texture for character: ", character)
+		texture_rect.texture = null
 
 # Update player labels
 func _update_player_labels():
@@ -190,6 +196,13 @@ func _on_match_state(state):
 		"request_game_state":
 			if Global.is_host:
 				_broadcast_game_state()
+		"initial_game_state":
+			Global.players = data.players
+			Global.player_characters = data.player_characters
+			current_player_index = data.current_player_index
+			turn_number = data.turn_number
+			_update_player_display()
+			update_turn_display()
 		"end_turn":
 			if Global.is_host:
 				next_turn()
@@ -199,6 +212,15 @@ func _on_match_state(state):
 func _broadcast_game_state():
 	Global.send_match_state(3, {
 		"type": "game_state", 
+		"current_player_index": current_player_index,
+		"turn_number": turn_number
+	})
+
+func _broadcast_initial_game_state():
+	Global.send_match_state(3, {
+		"type": "initial_game_state",
+		"players": Global.players,
+		"player_characters": Global.player_characters,
 		"current_player_index": current_player_index,
 		"turn_number": turn_number
 	})
