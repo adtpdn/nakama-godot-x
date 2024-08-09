@@ -18,7 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 Nakama="*res://addons/com.heroiclabs.nakama/Nakama.gd"
-Global="*res://Scenes/Global.gd"
+Global="*res://scenes/Global.gd"
 
 [rendering]
 

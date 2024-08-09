@@ -50,6 +50,14 @@ func update_player_list():
 			label.text = "Waiting..."
 			color_rect.color = Color.RED
 
+# Update character selection from global.gd
+func update_character_selection():
+	character_name_label.text = Global.characters[current_character_index]
+	Global.selected_character = Global.characters[current_character_index]
+	Global.send_match_state(1, {"type": "character_selected", "character": Global.selected_character})
+	Global.player_characters[Global.player_id] = Global.selected_character
+	update_player_list()  # Add this line
+
 # Start game button pressed (host only)
 func _on_start_game_pressed():
 	if Global.is_host and Global.players.size() > 1:

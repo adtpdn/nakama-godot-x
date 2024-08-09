@@ -202,6 +202,7 @@ func _on_match_state(state):
 			players = data.players
 			players_updated.emit()
 
+
 # Start the game (host only)
 func start_game():
 	if is_host:
